@@ -15,13 +15,13 @@ def main():
 		sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 		sock.bind((My_IP,DNS_PORT))
 	except:
-		print "Couldn't bind to port 53."
+		print ("Couldn't bind to port 53.")
 		exit()
 
 	while True:
 		data, addr = sock.recvfrom(2048)
 
-		print data, addr
+		print (data, addr)
 
 if __name__=="__main__":
 	main()

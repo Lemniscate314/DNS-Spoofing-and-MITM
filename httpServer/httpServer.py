@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import os
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from urlparse import urlparse
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse
+
 LOGGED_IN_COOKIE = "supersecretcoookie"
 class RequestHandler(BaseHTTPRequestHandler):
     

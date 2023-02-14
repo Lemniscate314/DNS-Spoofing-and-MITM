@@ -1,9 +1,8 @@
 import argparse
-import dns.resolver
 import socket
 import sys
+import dns
 import os
-from urllib import urlencode
 
 GLOBAL_source_ip = "127.0.0.1"
 GLOBAL_dest_ip = "1.2.3.4"
@@ -50,7 +49,7 @@ def httpConnection(my_ip, resolver_ip):
 	# Load the login page
 	resp = sendAndReceive_HTTP1_0(dest_ip, dest_port, "GET /login HTTP/1.0\r\n\r\n")
 	print("<------- Result of GET /login  --------->")
-	print resp
+	print (resp)
 	print("<-----=============================----->")
 
 	# Send form on login page
@@ -60,7 +59,7 @@ def httpConnection(my_ip, resolver_ip):
 	resp = sendAndReceive_HTTP1_0(dest_ip, dest_port, request)
 
 	print("<------ Result of POST /post_login ----->")
-	print resp
+	print (resp)
 	print("<------============================----->")
 
 	# Get a cookie from logging in
@@ -84,11 +83,11 @@ def httpConnection(my_ip, resolver_ip):
 	resp = sendAndReceive_HTTP1_0(dest_ip, dest_port, request)	
 	
 	print("<------ Result of POST /post_logout ----->")
-	print resp
+	print(resp)
 	print("<------============================----->")
 
 	# Close the connection when completed
-	print "\nClient done!"
+	print ("\nClient done!")
 
 def main():
 	parser = argparse.ArgumentParser(description='Client sends packets after dns lookup.')
