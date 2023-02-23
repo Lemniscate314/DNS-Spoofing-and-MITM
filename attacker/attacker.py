@@ -68,9 +68,9 @@ def handle_tcp_forwarding(client_socket, client_ip, hostname):
             connection.sendall(data)
             print(f"Sent {len(data)} bytes to client {client_address}")
 
-    # connection.close()
-    # host_socket.close()
-    # print(f"Closed connection with client {client_address} and host {hostname}")
+    connection.close()
+    host_socket.close()
+    print(f"Closed connection with client {client_address} and host {hostname}")
 
 
 def dns_callback(packet, extra_args):
