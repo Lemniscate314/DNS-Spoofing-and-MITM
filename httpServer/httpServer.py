@@ -97,8 +97,8 @@ def main():
     os.chdir(dname)
 
     port = 8000
-    source_ip = "127.1.1.1"
-
+    source_ip = "127.0.1.1"
+    print("Enter this URL to start the server: http://"+source_ip+":"+str(port))
     print('Listening on localhost:%s' % port)
     server = HTTPServer((source_ip, port), RequestHandler)
     server.serve_forever()

