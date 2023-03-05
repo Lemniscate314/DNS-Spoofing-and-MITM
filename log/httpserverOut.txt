@@ -1,2 +1,0 @@
-Enter this URL to start the server: http://127.0.1.1:8000
-Listening on localhost:8000

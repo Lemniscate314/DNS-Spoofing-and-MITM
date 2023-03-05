@@ -1,7 +1,7 @@
 import argparse
 import socket
+import dns.resolver
 import sys
-import dns
 import os
 
 GLOBAL_source_ip = "127.0.0.1"
@@ -35,7 +35,7 @@ def httpConnection(my_ip, resolver_ip):
 
 
 	# Query the DNS resolver for our hostname's IP
-	result = resolver.query(WEBSITE_NAME)
+	result = dns.resolver.resolve(WEBSITE_NAME)
 
 	for res in result:
 		print(res.address)
